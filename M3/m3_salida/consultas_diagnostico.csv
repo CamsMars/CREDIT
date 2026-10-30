@@ -1,0 +1,6 @@
+consulta,chunk_esperado,hipotesis,nota,rango_densa,estado
+¿qué significa el centinela -999?,doc2_c0,término exacto,el literal -999 podría no pesar en el espacio semántico,1,no falla
+¿cuánto vale PR-AUC del modelo afinado?,doc5_c1,término exacto,la sigla PR-AUC aparece en doc3 y doc5; solo doc5_c1 trae la cifra,1,no falla
+"mi modelo da resultados distintos cada vez que lo cargo, ¿por qué?",doc6_c0,consulta coloquial,ninguna palabra coincide con el doc6; depende de que el embedding capte el significado,>10,falla confirmada
+¿por qué no se usa el sexo del solicitante?,doc4_c0,top-k con ruido,varios chunks hablan de variables; el motivo podría no quedar arriba,1,no falla
+¿a quién perjudica más el modelo?,doc8_c0,consulta abstracta,requiere el chunk con las tasas por grupo de la auditoría,4,falla débil

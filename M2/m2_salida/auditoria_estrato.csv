@@ -1,0 +1,5 @@
+estrato,n,tasa real de incumplimiento,tasa de alerta,falsa alarma (FPR),detección (TPR)
+1,196,0.0306,0.2398,0.2211,0.8333
+2,471,0.0382,0.2081,0.1987,0.4444
+3,476,0.0273,0.1134,0.1037,0.4615
+4,224,0.0312,0.0848,0.0737,0.4286

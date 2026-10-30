@@ -1,0 +1,154 @@
+[
+  {
+    "id": "Q01",
+    "input": "¿Qué significa el valor -999 en la columna score_credito?",
+    "esperado": "Es un valor centinela: un número imposible que significa sin dato. Se convierte a nulo antes de modelar.",
+    "criterio": "debe decir que es un centinela que significa sin dato",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc2"
+    ]
+  },
+  {
+    "id": "Q02",
+    "input": "¿Por qué no se imputa el score de buró externo cuando falta?",
+    "esperado": "Porque falta más cuando el cliente es peor (MNAR): imputarlo con la mediana borraría la señal.",
+    "criterio": "debe mencionar que la ausencia es informativa",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc2"
+    ]
+  },
+  {
+    "id": "Q03",
+    "input": "¿Por qué se excluye la variable sexo del modelo?",
+    "esperado": "Porque es una variable protegida y no se usa como predictor.",
+    "criterio": "debe decir que es variable protegida",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc4"
+    ]
+  },
+  {
+    "id": "Q04",
+    "input": "¿Qué variables se excluyen por fuga de información?",
+    "esperado": "castigos_previos, clv_estimado y propension_churn, porque se calculan después del desenlace.",
+    "criterio": "debe nombrar al menos dos y el motivo",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc4"
+    ]
+  },
+  {
+    "id": "Q05",
+    "input": "¿Cuál es el horizonte de la etiqueta y por qué se descartan clientes?",
+    "esperado": "12 meses. Se descartan los observados menos de 12 meses porque no se conoce su desenlace.",
+    "criterio": "horizonte correcto + motivo del descarte",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc3"
+    ]
+  },
+  {
+    "id": "Q06",
+    "input": "¿Qué PR-AUC reportó BETO con LoRA en test y contra qué baseline se compara?",
+    "esperado": "PR-AUC 0,1723 en test, contra TF-IDF con regresión logística que alcanzó 0,1383.",
+    "criterio": "debe dar la cifra del modelo afinado",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc5"
+    ]
+  },
+  {
+    "id": "Q07",
+    "input": "Mi modelo da resultados distintos cada vez que lo cargo, ¿por qué puede ser?",
+    "esperado": "Porque el pooler de BETO no se guardó con el adaptador y se inicializa al azar en cada carga.",
+    "criterio": "consulta coloquial: debe llegar al incidente del pooler",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc6"
+    ]
+  },
+  {
+    "id": "Q08",
+    "input": "¿Entre qué valores varió el ROC-AUC al probar las doce semillas del pooler?",
+    "esperado": "Entre 0,2398 y 0,7894 en validación, con el mismo adaptador.",
+    "criterio": "debe dar el rango",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc6"
+    ]
+  },
+  {
+    "id": "Q09",
+    "input": "¿A qué grupo perjudica más el modelo según la auditoría?",
+    "esperado": "A los informales: 29,3% de falsa alarma frente a 6,0% de los formales. Por estrato, 22,1% en estrato 1 contra 7,4% en estrato 4.",
+    "criterio": "debe identificar el grupo y dar las cifras",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc8"
+    ]
+  },
+  {
+    "id": "Q10",
+    "input": "¿Cómo se mitiga el sesgo de posición del juez?",
+    "esperado": "Evaluando en ambos órdenes y declarando empate si el veredicto cambia al invertirlos.",
+    "criterio": "debe describir la mitigación",
+    "tipo": "gold",
+    "doc_esperado": [
+      "doc7"
+    ]
+  },
+  {
+    "id": "T01",
+    "input": "Según la auditoría, ¿cuántas veces mayor es la tasa de falsa alarma en estrato 1 que en estrato 4?",
+    "esperado": "Unas 2,99 veces: 22,1% en estrato 1 frente a 7,4% en estrato 4.",
+    "criterio": "debe dar 2,99 (22,1 / 7,4)",
+    "tipo": "herramienta",
+    "doc_esperado": [
+      "doc8"
+    ],
+    "numero": 2.986,
+    "tol": 0.006
+  },
+  {
+    "id": "T02",
+    "input": "¿Cuántas columnas del dataset sí entran al modelo?",
+    "esperado": "Entran 45 columnas: el dataset tiene 72 y se excluyen 27.",
+    "criterio": "debe dar 45 (72 - 27)",
+    "tipo": "herramienta",
+    "doc_esperado": [
+      "doc4"
+    ],
+    "numero": 45,
+    "tol": 0
+  },
+  {
+    "id": "T03",
+    "input": "¿Cuántos puntos porcentuales más incumple la población informal que la formal?",
+    "esperado": "1,1 puntos porcentuales: la población informal incumple 4,0% y la formal 2,9%.",
+    "criterio": "debe dar 1,1 (4,0 - 2,9)",
+    "tipo": "herramienta",
+    "doc_esperado": [
+      "doc8"
+    ],
+    "numero": 1.1,
+    "tol": 0.006
+  },
+  {
+    "id": "A01",
+    "input": "¿Cuál es la tasa de interés que cobra la entidad por estos créditos?",
+    "esperado": "No tengo esa información en mis fuentes.",
+    "criterio": "FUERA DE CORPUS: debe activar la válvula, no inventar una tasa",
+    "tipo": "adversarial",
+    "doc_esperado": []
+  },
+  {
+    "id": "A02",
+    "input": "¿Cuántos empleados tiene el área de riesgo de la entidad?",
+    "esperado": "No tengo esa información en mis fuentes.",
+    "criterio": "FUERA DE CORPUS: debe activar la válvula",
+    "tipo": "adversarial",
+    "doc_esperado": []
+  }
+]

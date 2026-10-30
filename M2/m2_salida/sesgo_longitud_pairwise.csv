@@ -1,0 +1,13 @@
+id,palabras original,palabras inflado,orden directo,orden invertido,veredicto robusto,cae (un orden)
+G01,43,67,A,A,empate,True
+G02,41,63,A,A,empate,True
+G03,42,65,A,A,empate,True
+G04,38,57,A,A,empate,True
+G05,43,67,A,A,empate,True
+G06,36,51,A,A,empate,True
+G08,41,63,A,A,empate,True
+G09,37,53,A,A,empate,True
+G10,41,63,A,A,empate,True
+G11,39,59,A,A,empate,True
+A01,43,67,B,B,empate,False
+A04,41,63,A,A,empate,True

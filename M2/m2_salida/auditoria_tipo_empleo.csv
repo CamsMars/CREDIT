@@ -1,0 +1,4 @@
+tipo_empleo,n,tasa real de incumplimiento,tasa de alerta,falsa alarma (FPR),detección (TPR)
+Formal,656,0.029,0.0671,0.0597,0.3158
+Independiente formal,286,0.0175,0.0874,0.0819,0.4
+Informal,445,0.0404,0.3079,0.2927,0.6667

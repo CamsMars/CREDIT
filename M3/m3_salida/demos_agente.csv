@@ -1,0 +1,4 @@
+consulta,necesita,llamadas,expresion,veredicto,respuesta
+"Según la auditoría, ¿cuántas veces mayor es la falsa alarma de los informales frente a los formales?",True,['calculadora'],(29.3 * 1.5) / (6.0 * 1.5),correcto,"Según la auditoría, la falsa alarma de los informales es aproximadamente cinco veces mayor que la de los formales. Esto se refleja en una tasa de falsa alarma de 29,3% entre los informales y 6,0% entre los formales."
+"Si a un cliente solo se le observó 4 meses, ¿cuántos meses le faltan para el horizonte de la etiqueta?",True,[],,NO la llamó,"Si a un cliente solo se le observó 4 meses, le faltarían 8 meses para completar el horizonte de la etiqueta de 12 meses."
+¿Qué modelo base usa el sistema?,False,[],,correcto,"El sistema utiliza el modelo BASE, dccuchile/bert-base-spanish-wwm-cased, afinado con LoRA de rango 16 y alpha 32 sobre las proyecciones query y value de la atención, con dropout 0,1 y la cabeza de clasificación entrenada completa."

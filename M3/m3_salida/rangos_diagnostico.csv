@@ -1,0 +1,6 @@
+consulta,hipotesis,chunk_esperado,densa,bm25,híbrida,avanzado
+¿qué significa el centinela -999?,término exacto,doc2_c0,1,1,1,1
+¿cuánto vale PR-AUC del modelo afinado?,término exacto,doc5_c1,1,2,1,1
+mi modelo da resultados distintos cada vez que l,consulta coloquial,doc6_c0,>10,1,8,1
+¿por qué no se usa el sexo del solicitante?,top-k con ruido,doc4_c0,1,1,1,1
+¿a quién perjudica más el modelo?,consulta abstracta,doc8_c0,4,7,3,1

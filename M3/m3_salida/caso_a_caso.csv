@@ -1,0 +1,16 @@
+id,tipo,base ok,base juez,base falla,ingenuo ok,ingenuo juez,ingenuo falla,avanzado ok,avanzado juez,avanzado falla,final ok,final juez,final falla
+Q01,gold,✓,5,,✓,5,,✓,5,,✓,5,
+Q02,gold,✗,2,sin recuperación,✗,2,generación (válvula de más),✗,2,generación (válvula de más),✗,2,generación (válvula de más)
+Q03,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+Q04,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+Q05,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+Q06,gold,✓,2,,✓,5,,✓,2,,✓,2,
+Q07,gold,✗,2,sin recuperación,✗,2,recuperación,✓,5,,✓,5,
+Q08,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+Q09,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+Q10,gold,✗,2,sin recuperación,✓,5,,✓,5,,✓,5,
+T01,herramienta,✗,2,sin recuperación,✗,2,generación,✗,2,generación,✗,2,generación
+T02,herramienta,✗,2,sin recuperación,✓,5,,✗,2,generación,✗,2,generación
+T03,herramienta,✗,1,sin recuperación,✓,5,,✓,5,,✓,5,
+A01,adversarial,✗,1,no se abstuvo,✓,5,,✓,5,,✓,5,
+A02,adversarial,✗,1,no se abstuvo,✓,5,,✓,5,,✓,5,

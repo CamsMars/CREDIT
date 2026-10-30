@@ -1,0 +1,16 @@
+id,tipo,router: calcular,necesita (según el eval set),pregunta
+Q01,gold,False,False,¿Qué significa el valor -999 en la columna score_credito?
+Q02,gold,False,False,¿Por qué no se imputa el score de buró externo cuando falta?
+Q03,gold,False,False,¿Por qué se excluye la variable sexo del modelo?
+Q04,gold,False,False,¿Qué variables se excluyen por fuga de información?
+Q05,gold,False,False,¿Cuál es el horizonte de la etiqueta y por qué se descartan clientes?
+Q06,gold,False,False,¿Qué PR-AUC reportó BETO con LoRA en test y contra qué baseline se com
+Q07,gold,False,False,"Mi modelo da resultados distintos cada vez que lo cargo, ¿por qué pued"
+Q08,gold,False,False,¿Entre qué valores varió el ROC-AUC al probar las doce semillas del po
+Q09,gold,False,False,¿A qué grupo perjudica más el modelo según la auditoría?
+Q10,gold,False,False,¿Cómo se mitiga el sesgo de posición del juez?
+T01,herramienta,True,True,"Según la auditoría, ¿cuántas veces mayor es la tasa de falsa alarma en"
+T02,herramienta,True,True,¿Cuántas columnas del dataset sí entran al modelo?
+T03,herramienta,True,True,¿Cuántos puntos porcentuales más incumple la población informal que la
+A01,adversarial,False,False,¿Cuál es la tasa de interés que cobra la entidad por estos créditos?
+A02,adversarial,False,False,¿Cuántos empleados tiene el área de riesgo de la entidad?

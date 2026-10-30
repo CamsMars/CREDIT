@@ -1,0 +1,6 @@
+data/perfiles.csv
+data/*.jsonl
+M2/m2_cache/
+m2_train_out/
+__pycache__/
+.ipynb_checkpoints/

@@ -1,0 +1,3 @@
+sistema,faithfulness,context_precision,context_recall,answer_relevancy
+RAG ingenuo,0.778,0.288,0.923,0.727
+Sistema final,0.792,0.308,0.923,0.719

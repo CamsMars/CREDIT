@@ -1,0 +1,6 @@
+,M1 · BETO+LoRA,LLM genérico (sin fine-tuning)
+1 · similitud embeddings,0.776,0.484
+2 · juez LLM (1-5),1.57,1.93
+3 · aciertos de dominio,8/14,1/14
+   · sólo gold,4/10,0/10
+   · sólo adversariales,4/4,1/4

@@ -1,0 +1,15 @@
+id,orden directo,orden invertido,consistente,gana
+G01,A,A,False,empate
+G02,B,A,True,LLM
+G03,A,A,False,empate
+G04,A,A,False,empate
+G05,A,A,False,empate
+G06,A,A,False,empate
+G08,A,A,False,empate
+G09,A,A,False,empate
+G10,A,A,False,empate
+G11,A,A,False,empate
+A01,B,B,False,empate
+A02,A,A,False,empate
+A03,A,A,False,empate
+A04,B,A,True,LLM

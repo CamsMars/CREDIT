@@ -1,0 +1,50 @@
+[
+  {
+    "id": "doc1",
+    "fuente": "Diccionario de datos · perfiles.csv (2026)",
+    "fecha": "2026-08",
+    "texto": "El dataset perfiles.csv contiene 252.523 filas y 72 columnas con información de solicitantes de crédito. Las variables de identidad y vinculación son id_usuario, fecha_vinculacion, ultima_actualizacion, origen_registro e id_asesor. Las sociodemográficas son edad, sexo, ciudad, region, estrato, nivel_educativo, estado_civil, dependientes, propiedad_vivienda y tipo_vivienda. Las de ocupación e ingreso son profesion, codigo_ciiu, descripcion_ocupacion, tipo_empleo, ingreso_reportado, unidad_ingreso, volatilidad_ingreso y patrimonio_declarado. Las crediticias son deuda_total_actual, ratio_deuda_ingreso, cuota_mensual_actual, score_credito, score_bureau_externo, antiguedad_financiera, num_creditos_activos, num_entidades_reportadas, utilizacion_tdc y saldos_ultimos_6m. El comportamiento de pago está en moras_ultimos_24m, max_dias_mora_historico, meses_desde_ultima_mora, castigos_previos y consultas_centrales_6m. La solicitud está en monto_solicitado y plazo_solicitado. El desenlace está en meses_observados, tiempo_evento y evento. Las cinco columnas ruido_1 a ruido_5 son aleatorias puras y están en el archivo para distinguir a quien selecciona variables con criterio de quien lanza todas al modelo."
+  },
+  {
+    "id": "doc2",
+    "fuente": "Limpieza de datos · M1 secciones 3 y 4 (2026)",
+    "fecha": "2026-08",
+    "texto": "El archivo trae valores centinela: un número imposible que en realidad significa sin dato. score_credito usa -999, max_dias_mora_historico usa 999, num_entidades_reportadas usa 99, y dependientes y sesiones_app_mes usan -1. Todos se convierten a nulo antes de modelar. La columna fecha_vinculacion mezcla tres plantillas, ISO aaaa-mm-dd, dd/mm/aaaa y dd-Mon-aaaa, más dos fechas centinela, 1900-01-01 y 2031-12-31. Pasarlas juntas a un parser automático produce fechas silenciosamente incorrectas. La columna ciudad aparece escrita de 95 formas distintas para 22 ciudades reales, con tildes, mayúsculas y sufijos como D.C. El ingreso viene en pesos o en miles de pesos: cuando falta unidad_ingreso y el valor es menor a 50.000 se asume que venía en miles, y la fila queda marcada en ingreso_unidad_imputada para poder auditarla. El patrimonio viene en USD en el 4 por ciento de las filas y se convierte con una TRM supuesta de 4.000 pesos por dólar. El score de buró externo ausente no se imputa: falta más cuando el cliente es peor, es decir que es MNAR, y rellenarlo con la mediana borraría justamente la señal."
+  },
+  {
+    "id": "doc3",
+    "fuente": "Definición de la etiqueta · M1 sección 5 (2026)",
+    "fecha": "2026-08",
+    "texto": "La variable evento igual a cero no significa buen cliente. Puede significar que el cliente pagó bien durante 48 meses o que solo se le observó cuatro. Mezclar ambos casos le enseña al modelo que un perfil riesgoso con poco seguimiento es seguro. La corrección es fijar un horizonte común de 12 meses: se conservan los clientes observados al menos 12 meses y se pregunta si incumplieron dentro de esos 12 meses. Los clientes con menos seguimiento se descartan, porque de ellos no se conoce el desenlace y descartarlos es más honesto que llamarlos buenos. La tasa de incumplimiento a 12 meses resultante es de 3,65 por ciento, y esa prevalencia es el piso real de la métrica PR-AUC."
+  },
+  {
+    "id": "doc4",
+    "fuente": "Variables excluidas · M1 sección 6 (2026)",
+    "fecha": "2026-08",
+    "texto": "De las 72 columnas, 27 no entran al modelo y cada exclusión tiene un motivo. La variable sexo se excluye por ser una variable protegida. Las variables castigos_previos, clv_estimado y propension_churn se excluyen por fuga de información: se calculan después del desenlace. La variable score_politica_anterior codifica la decisión de la política vieja e introduce sesgo de selección. La variable segmento_mercado es la partición del simulador, no un hallazgo propio. La variable version_politica es constante. La variable id_asesor tiene 480 niveles y es un proxy operativo, no del cliente. Latitud y longitud traen 1,2 por ciento de coordenadas invertidas y 2 por ciento en el punto cero, y son redundantes con ciudad y región. La variable email_dominio es un proxy socioeconómico sin relación causal con el pago. Las variables de campaña, apertura_ofertas_pct y respuesta_campanas_previas, miden actividad comercial y no riesgo. Las cinco variables ruido se excluyen por ser aleatorias puras."
+  },
+  {
+    "id": "doc5",
+    "fuente": "Modelo y umbral de decisión · M1 parte B y M2 (2026)",
+    "fecha": "2026-10",
+    "texto": "El modelo es BETO, dccuchile/bert-base-spanish-wwm-cased, afinado con LoRA de rango 16 y alpha 32 sobre las proyecciones query y value de la atención, con dropout 0,1 y la cabeza de clasificación entrenada completa. Se entrena menos del 2 por ciento de los parámetros. La entrada no son columnas sino una ficha redactada en español de unos 1.200 caracteres por cliente. El entrenamiento submuestrea los negativos a tres por cada positivo, pero validación y test conservan la prevalencia real. La métrica principal es PR-AUC, porque con 3,65 por ciento de positivos la accuracy premia al modelo que no hace nada y el ROC-AUC se ve optimista. M1 reportó en test PR-AUC 0,1723, ROC-AUC 0,8278 y F1 0,2646, contra TF-IDF con regresión logística que alcanzó PR-AUC 0,1383, y contra BETO congelado con sonda sobre el token CLS que alcanzó 0,1221. El umbral de decisión se elige maximizando F1 sobre validación, nunca sobre test. M1 eligió 0,65. En M2 el umbral se volvió a derivar en 0,54 porque el pooler se había perdido y la escala de probabilidades quedó corrida."
+  },
+  {
+    "id": "doc6",
+    "fuente": "Incidente de reproducibilidad · M2 (2026)",
+    "fecha": "2026-10",
+    "texto": "El checkpoint de BETO viene de masked language modeling y no incluye la capa pooler, de modo que transformers la inicializa al azar en cada carga. LoRA no la entrenó, porque solo tocó query, value y la cabeza, así que quedó congelada en ese valor aleatorio. El método save_pretrained de PEFT guarda únicamente los parámetros entrenables, por lo que el pooler nunca se escribió a disco. Al recargar el adaptador en M2 se sortea otro pooler y la cabeza de clasificación queda leyendo features distintas de aquellas con las que aprendió. El harness lo detectó porque la tasa de alerta cayó a cero con el umbral heredado. Se midió el efecto probando doce semillas: el ROC-AUC en validación varía entre 0,2398 y 0,7894 con el mismo adaptador y las mismas fichas. Un valor por debajo de 0,5 significa que el modelo ordena a los solicitantes al revés. Se eligió la mejor semilla, se guardó el pooler junto al adaptador en pooler.safetensors y se re-derivó el umbral sobre validación."
+  },
+  {
+    "id": "doc7",
+    "fuente": "Harness de evaluación y rúbrica del juez · M2 (2026)",
+    "fecha": "2026-10",
+    "texto": "El harness de M2 mide el sistema en tres dimensiones sobre un eval set propio. La dimensión 1 es una métrica clásica automática, la similitud coseno por embeddings con el modelo multilingüe paraphrase-multilingual-MiniLM-L12-v2. La dimensión 2 es un LLM-as-a-judge con rúbrica anclada de 1 a 5 y versionada en el repositorio. La dimensión 3 es una medida propia de aciertos de dominio con criterio explícito por caso. La firma es harness(eval_set, sistema) y se puede re-ejecutar sobre cualquier sistema que cumpla el contrato de entrada y salida. El juez se controla por tres sesgos conocidos: posición, longitud y auto-preferencia. El sesgo de posición se mitiga evaluando en ambos órdenes y declarando empate si el veredicto cambia. El sesgo de longitud se midió replicando el ataque de lista repetitiva de Zheng y otros, que duplica cada elemento de la lista reformulado sin aportar información nueva. El eval set de M2 tiene 14 casos, 10 gold y 4 adversariales, y está congelado en eval_set.json para que las comparaciones entre módulos sean válidas."
+  },
+  {
+    "id": "doc8",
+    "fuente": "Auditoría de sesgos del sistema · M2 (2026)",
+    "fecha": "2026-10",
+    "texto": "La auditoría desagrega el error del modelo por grupo sobre 1.500 fichas de test. La tasa de falsa alarma, es decir la proporción de solicitantes que sí habrían pagado pero quedan marcados como riesgosos, es de 29,3 por ciento entre los informales y de 6,0 por ciento entre los formales, casi cinco veces más. Por estrato va de 22,1 por ciento en estrato 1 a 7,4 por ciento en estrato 4. Un contrafactual sobre 300 fichas que cambia únicamente la palabra del estrato mueve la probabilidad de incumplimiento en menos de 0,001 en promedio y voltea el veredicto en el 0,3 por ciento de los casos, de modo que el estrato por sí solo no es el predictor: la penalización viene de las variables correlacionadas, sobre todo la informalidad y la volatilidad del ingreso, que el modelo sí usa. En términos estadísticos no es un error, porque la población informal incumple más, 4,0 por ciento contra 2,9 por ciento. En términos de lo que le ocurre a una persona, significa que a un informal que habría pagado se le niega el crédito cinco veces más a menudo que a un formal en su misma situación."
+  }
+]

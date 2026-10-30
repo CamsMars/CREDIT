@@ -1,0 +1,5 @@
+recuperación,mediana (ms)
+densa top-4,12.4
+híbrida top-4,13.1
+densa + rerank,46.8
+híbrida + rerank,46.6

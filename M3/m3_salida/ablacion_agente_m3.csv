@@ -1,0 +1,4 @@
+Sistema,D2 · juez v1.1 (1-5),D3 · aciertos,gold,herramienta,válvula,casos T con tool,tools de más,latencia mediana (s)
+RAG avanzado (híbrida+rerank),4.2,12/15,9/10,1/3,2/2,0/3,0,1.36
+Agente libre (el modelo decide),4.0,9/15,6/10,1/3,2/2,2/3,4,2.93
+Sistema final (con herramienta),4.2,12/15,9/10,1/3,2/2,1/3,0,1.77

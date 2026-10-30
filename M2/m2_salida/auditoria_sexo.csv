@@ -1,0 +1,3 @@
+sexo,n,tasa real de incumplimiento,tasa de alerta,falsa alarma (FPR),detección (TPR)
+F,725,0.029,0.1407,0.1293,0.5238
+M,745,0.0295,0.157,0.1494,0.4091

@@ -1,0 +1,5 @@
+Sistema,D1 · similitud (sin válvula),D2 · juez v1.1 (1-5),D2 · juez M2 (1-5),D3 · aciertos,doc correcto recuperado,latencia mediana (s)
+RAG ingenuo (S07),0.615,4.4,3.53,12/15,12/13,1.7
+"+ híbrida, sin rerank",0.688,4.4,3.67,12/15,12/13,2.03
+"+ rerank, sin BM25",0.683,4.0,2.87,12/15,13/13,1.85
+RAG avanzado (híbrida+rerank),0.645,4.2,2.93,12/15,13/13,1.36

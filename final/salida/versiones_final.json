@@ -1,0 +1,52 @@
+{
+ "python": "3.13.16",
+ "torch": "2.14.1+cu130",
+ "transformers": "5.22.1",
+ "sentence-transformers": "5.7.0",
+ "rank-bm25": "0.2.2",
+ "llama_cpp_python": "0.3.36",
+ "bitsandbytes": "0.50.2",
+ "accelerate": "1.15.0",
+ "numpy": "2.4.6",
+ "pandas": "2.2.3",
+ "generador": "Qwen/Qwen2.5-1.5B-Instruct",
+ "gguf": {
+  "q8_0": "Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q8_0.gguf",
+  "q4_k_m": "Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+ },
+ "juez": "Qwen/Qwen2.5-7B-Instruct (4bit)",
+ "juez_m2": "Qwen/Qwen2.5-1.5B-Instruct (float16, cuda)",
+ "embeddings": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+ "reranker": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+ "semilla": 42,
+ "decodificacion": "greedy, repetition_penalty=1.1",
+ "maquina": {
+  "cpu": "x86_64",
+  "n_cpu": 2,
+  "ram_gb": 13.6,
+  "gpu": "Tesla T4"
+ },
+ "criterio": {
+  "max_perdida_juez_v11": 0.3,
+  "max_perdida_aciertos": 1,
+  "valvula_intacta": true,
+  "max_perdida_adversariales": 0,
+  "min_reduccion_p50": 0.4,
+  "min_reduccion_memoria": 0.5
+ },
+ "cordura_juez": {
+  "juez_v11": {
+   "respuesta correcta": 5,
+   "respuesta errada": 2,
+   "dato inventado": 1
+  },
+  "juez_v11_valido": true,
+  "juez_m2": {
+   "respuesta correcta": 5,
+   "respuesta errada": 1,
+   "dato inventado": 2
+  },
+  "juez_m2_valido": false
+ },
+ "version_desplegada": null
+}

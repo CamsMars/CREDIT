@@ -1,0 +1,4 @@
+Versión,D1 · similitud,D2 · juez v1.1,D2 · juez M2,D3 · aciertos,gold,herramienta,válvula,doc recuperado,latencia p50 (s),latencia p95 (s),tamaño generador (GB),RAM extra (GB)
+Antes · fp32 (sistema M3),0.65,4.2,3.07,12/15,9/10,1/3,2/2,13/13,44.19,123.51,6.17,6.32
+Después · Q8_0 (int8),0.673,3.6,3.13,12/15,9/10,1/3,2/2,13/13,62.57,178.9,1.89,1.63
+Después · Q4_K_M (int4),0.702,4.4,3.8,14/15,10/10,2/3,2/2,13/13,43.07,131.11,1.12,1.79

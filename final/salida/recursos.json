@@ -1,0 +1,40 @@
+{
+ "maquina": {
+  "cpu": "x86_64",
+  "n_cpu": 2,
+  "ram_gb": 13.6,
+  "gpu": "Tesla T4"
+ },
+ "recursos": {
+  "fp32": {
+   "generador": "Qwen/Qwen2.5-1.5B-Instruct (float32, cpu)",
+   "tamano_gb": 6.17,
+   "ram_extra_gb": 6.32,
+   "carga_s": 46.6,
+   "p50": 44.187,
+   "p95": 123.5131,
+   "media": 63.95353333333334,
+   "max": 127.193
+  },
+  "q8_0": {
+   "generador": "Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q8_0.gguf (llama.cpp, cpu)",
+   "tamano_gb": 1.89,
+   "ram_extra_gb": 1.63,
+   "carga_s": 31.9,
+   "p50": 62.567,
+   "p95": 178.8978,
+   "media": 81.07586666666666,
+   "max": 181.261
+  },
+  "q4_k_m": {
+   "generador": "Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q4_k_m.gguf (llama.cpp, cpu)",
+   "tamano_gb": 1.12,
+   "ram_extra_gb": 1.79,
+   "carga_s": 13.3,
+   "p50": 43.073,
+   "p95": 131.11090000000002,
+   "media": 59.388000000000005,
+   "max": 133.766
+  }
+ }
+}

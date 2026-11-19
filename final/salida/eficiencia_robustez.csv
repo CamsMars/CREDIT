@@ -1,0 +1,4 @@
+Versión,válvula (eval set),adversariales,invarianza: pares estables,invarianza: paráfrasis correctas
+Antes · fp32 (sistema M3),2/2,4/5,4/5,4/5
+Después · Q8_0 (int8),2/2,5/5,3/5,4/5
+Después · Q4_K_M (int4),2/2,4/5,4/5,4/5

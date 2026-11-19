@@ -1,30 +1,64 @@
 # CREDIT · SI4006
 
-Proyecto de curso sobre riesgo de crédito. Tres entregas encadenadas sobre el mismo sistema:
-primero se entrena un modelo que lee fichas de solicitantes, después se construye la vara con la
-que se mide, y por último se le da una capa de conocimiento consultable.
+**Un asistente que le responde al analista de riesgo, con la fuente de cada respuesta, cómo funciona y dónde se equivoca
+el modelo de crédito del proyecto, para que decida si confía en su dictamen o lo envía a revisión manual.** Si la
+respuesta no está en la documentación, el asistente lo dice en lugar de inventarla.
+
+| | |
+| :-- | :-- |
+| **Demo** | Colab + túnel de Cloudflare: [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) imprime la URL pública y el health check (`<URL>/health`) |
+| **Observabilidad** | `<URL>/metrics` y pestaña «Observabilidad» de la app; W&B en modo offline (ver la sección 9 del reporte) |
+| **Reporte final** | [`final/reporte.md`](final/reporte.md) |
+| **Diapositivas** | ⟨PENDIENTE⟩ |
 
 Equipo: Jaider España, Camila Martínez
+
+## Cómo correrlo
+
+**La app, localmente (CPU, sin GPU ni claves):**
+
+```bash
+git clone https://github.com/CamsMars/CREDIT && cd CREDIT/final/space
+pip install -r requirements.txt
+python app.py            # http://localhost:7860  ·  health check: http://localhost:7860/health
+```
+
+La primera vez descarga el generador cuantizado (~1 GB) y los modelos de embeddings y reranking. `CREDIT_VERSION=q8_0`
+o `fp32` cambia la versión del generador, y `WANDB_API_KEY` (opcional) activa el registro en W&B.
+
+**Las tablas del reporte, en Colab:** abrir [`final/STAI_final_eficiencia.ipynb`](final/STAI_final_eficiencia.ipynb)
+con GPU T4 y ejecutar todo (alrededor de una hora). El notebook clona el repositorio, corre las tres versiones del
+generador en CPU, las califica con el harness y escribe todo en `final/salida/`. Semilla 42, decodificación greedy y
+versiones de modelos y librerías fijadas en `final/salida/versiones_final.json`.
+
+**Desplegar con enlace público:** abrir [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) en Colab (CPU) y
+ejecutar todo. Levanta la app y un túnel de Cloudflare, y muestra la URL. Hugging Face ya no ofrece Spaces de Gradio
+en CPU a cuentas gratuitas; `final/desplegar_space.py` queda para una cuenta con acceso.
+
+## Índice
 
 | | Qué contiene |
 | :-- | :-- |
 | [`M1/`](M1/) | Fine-tuning de BETO con LoRA sobre 205k perfiles, y el adaptador resultante |
 | [`M2/`](M2/) | Harness de evaluación de tres dimensiones y scorecard del baseline |
 | [`M3/`](M3/) | RAG agéntico sobre la documentación del proyecto, medido con el harness de M2 y RAGAS |
+| M4 | No se entregó (era opcional este semestre); ver la sección 3.3 del reporte final |
+| [`final/`](final/) | Técnica de eficiencia (cuantización GGUF del generador), despliegue y [reporte final](final/reporte.md) |
 
-Cada carpeta tiene su propio README con los resultados de esa entrega.
+Cada carpeta de módulo tiene su propio README con los resultados de esa entrega.
 
 ## Datos
 
-`perfiles.csv` pesa 135 MB y no está versionado. Hay que colocarlo en `data/` antes de correr los
-notebooks de M1 o M2. El de M3 no lo necesita: trabaja sobre un corpus de documentos propio.
+`perfiles.csv` pesa 135 MB y no está versionado. Hay que colocarlo en `data/` antes de correr los notebooks de M1 o M2.
+M3, la carpeta `final/` y la app no lo necesitan: trabajan sobre el corpus de documentos propio.
 
 ## Estructura
 
-    M1/   notebook de fine-tuning y m1_lora_adapter/ (adaptador, pooler, umbral)
-    M2/   notebook del harness y m2_salida/ con el scorecard y las auditorías
-    M3/   notebook del RAG y m3_salida/ con las tablas, RAGAS y el corpus
-    data/ perfiles.csv (no versionado)
+    M1/      notebook de fine-tuning y m1_lora_adapter/ (adaptador, pooler, umbral)
+    M2/      notebook del harness y m2_salida/ con el scorecard y las auditorías
+    M3/      notebook del RAG y m3_salida/ con las tablas, RAGAS y el corpus
+    final/   notebook de eficiencia, harness_final.py, reporte.md, salida/ (tablas) y space/ (la app desplegada)
+    data/    perfiles.csv (no versionado)
 
 ## Uso de IA
 

@@ -188,8 +188,7 @@ o falle igual en las dos versiones.
 
 Fuente: `final/salida/eficiencia_robustez.csv`.
 
-**¿Se cumplió el criterio? No, en ninguna de las dos versiones.** La parte que falla es la misma en ambas: la
-latencia.
+**¿Se cumplió el criterio? No, en ninguna de las dos versiones.** La parte que falla es la misma en ambas: la latencia. Esto nos permitió identificar que disminuir el tamaño del modelo no necesariamente se traduce en una mejora proporcional del tiempo de respuesta del sistema completo.
 
 La versión **int4 (Q4_K_M)** cumple todo lo demás. No perdió calidad (14/15 contra 12/15 en D3 y 4,4 contra 4,2 en el
 juez), mantuvo la válvula en 2/2 y las pruebas adversariales en 4/5, y el generador pasó de 6,17 GB a 1,12 GB, un 82 %
@@ -463,26 +462,24 @@ leído como O, la app muestra el texto leído junto al dictamen y la decisión q
 
 ## 11. Quién hizo qué
 
-- **Jaider España:** ⟨PENDIENTE⟩
-- **Camila Martínez:** ⟨PENDIENTE⟩
+- **Jaider España:** Participé en las pruebas y evaluación del modelo con LoRA, los experimentos del sistema RAG y la revisión de sus métricas. También trabajé en la ejecución de las pruebas de cuantización, la comparación de rendimiento entre versiones y la revisión del funcionamiento del despliegue, el health check y los registros de observabilidad.
+- **Camila Martínez:** Participé en la revisión del conjunto de datos, la definición y revisión de los casos de evaluación, la ejecución y análisis de pruebas del harness y RAGAS, y la validación de los casos visuales. También trabajé en el análisis de errores, la identificación de limitaciones y la revisión de la documentación final.
+- **Trabajo conjunto:** Discutimos los resultados de cada módulo, revisamos las alternativas de implementación y las limitaciones encontradas. Las decisiones finales sobre los experimentos, la evaluación del sistema y las conclusiones del proyecto se tomaron en equipo.
 
 ## 12. Uso de IA
 
-Usamos Claude durante todo el proyecto. Lo que corresponde a M1, M2 y M3 está en el README de la raíz y en el de cada
-módulo. En esta entrega final:
+Durante el desarrollo de CREDIT utilizamos Claude como apoyo en diferentes partes del proyecto, principalmente para trabajar con el código, solucionar errores y organizar la documentación. En esta entrega final lo usamos sobre todo para integrar los módulos anteriores, trabajar en la cuantización del modelo y preparar el despliegue de la aplicación.
 
-**Componente visual.** Claude escribió el módulo de OCR (`vision.py`), empaquetó el `sistema_m1` de M2 en
-`m1_dictamen.py`, agregó la pestaña a la app y escribió `STAI_final_visual.ipynb`. La lectura OCR la verificó contra las
-fichas reales del eval set antes de que corriéramos el clasificador.
+**Componente visual:** Claude escribió el módulo de OCR (`vision.py`), adaptó el sistema de clasificación que teníamos en M2 para utilizarlo desde `m1_dictamen.py`, agregó la pestaña visual a la aplicación y creó el notebook `STAI_final_visual.ipynb`. Antes de que ejecutáramos las pruebas con el clasificador, Claude también comprobó que la lectura OCR coincidiera con las fichas reales del conjunto de evaluación. Después utilizamos ese componente para evaluar cómo respondía el sistema cuando recibía imágenes.
 
-**Código.** Claude extrajo el pipeline del notebook de M3 a un módulo (`final/space/credit_rag.py`) para que el notebook
-de eficiencia y la app usaran exactamente el mismo sistema. También escribió el notebook de eficiencia, el de despliegue, la prueba de humo de GitHub Actions, la app de
-Gradio con el health check, el logging y W&B, y el script de despliegue. Antes de que corriéramos nada, verificó la
-lógica con modelos falsos.
+**Apoyo con el código:** Claude nos ayudó a pasar el pipeline que teníamos en el notebook de M3 a un módulo independiente (`final/space/credit_rag.py`). Esto permitió que tanto el notebook de eficiencia como la aplicación utilizaran el mismo sistema RAG, sin tener que mantener implementaciones diferentes. También escribió los notebooks de eficiencia y despliegue, la prueba de humo de GitHub Actions, la aplicación en Gradio con su health check, los registros de logging, la integración con W&B y el script de despliegue. Antes de ejecutar los componentes con los modelos reales, Claude revisó su lógica utilizando modelos falsos para detectar posibles errores.
 
-**Redacción.** El borrador de este reporte y de la portada lo escribió Claude a partir de los números de nuestras
-corridas. ⟨PENDIENTE: qué revisaron o cambiaron ustedes.⟩
+**Errores y depuración:** Una de las cosas para las que más utilizamos Claude fue para entender errores que aparecían al ejecutar los notebooks. En ocasiones, una solución que parecía funcionar terminaba generando otro problema, por lo que teníamos que revisar qué estaba pasando y volver a probar. Por ejemplo, en una etapa anterior encontramos diferencias entre los resultados del modelo entrenado y los que obteníamos al cargarlo nuevamente, lo que nos llevó a revisar el problema del *pooler* y a realizar pruebas con diferentes semillas.
 
-**Lo que decidimos nosotros.** ⟨PENDIENTE: por ejemplo, el criterio de pérdida aceptable, la versión desplegada, dejar
-el componente visual para el final y qué fallas incluir en el análisis.⟩ Las corridas las hicimos nosotros, y los
-números de este reporte salen de ellas.
+**Pruebas y resultados:** También utilizamos Claude para organizar las pruebas y revisar cómo medir la calidad, la latencia y el consumo de memoria. Nosotros nos encargamos de ejecutar los experimentos y revisar los resultados obtenidos. En las pruebas de cuantización encontramos que el modelo sí ocupaba mucho menos espacio, pero eso no se tradujo en una reducción importante del tiempo de respuesta. Aunque esperábamos una mejora mayor, decidimos conservar los resultados y explicar por qué no se cumplió el objetivo que habíamos establecido.
+
+**Documentación:** Para el README y el reporte final utilizamos Claude como apoyo para organizar la información, redactar algunas explicaciones y presentar los resultados de una manera más clara. Después revisamos los textos y las tablas para comprobar que coincidieran con las pruebas realizadas y con el funcionamiento del proyecto.
+
+**Decisiones que tomamos nosotros:** Aunque utilizamos bastante la herramienta, las decisiones sobre qué probar, cómo comparar los resultados y qué conclusiones presentar las discutimos entre los dos. Para esta entrega definimos un criterio de eficiencia, comparamos las versiones cuantizadas con la original y revisamos los casos en los que el sistema presentaba errores o no respondía como esperábamos. También consideramos importante mostrar lo que no funcionó, como la poca mejora en los tiempos de respuesta, en lugar de presentar solamente los resultados positivos.
+
+En general, Claude nos facilitó varias tareas, especialmente cuando teníamos problemas con el código o necesitábamos conectar diferentes partes del proyecto. Sin embargo, no todo lo que nos sugería funcionaba a la primera y tuvimos que hacer pruebas, revisar resultados y entender los errores para poder avanzar. Por eso, más que quedarnos únicamente con las respuestas de la herramienta, buscamos comprobar qué funcionaba realmente en nuestro sistema.

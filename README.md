@@ -1,12 +1,12 @@
 # CREDIT · SI4006
 
-**Un asistente que le responde al analista de riesgo, con la fuente de cada respuesta, cómo funciona y dónde se equivoca
-el modelo de crédito del proyecto, para que decida si confía en su dictamen o lo envía a revisión manual.** Si la
-respuesta no está en la documentación, el asistente lo dice en lugar de inventarla.
+**CREDIT es un asistente de inteligencia artificial pensado para apoyar a analistas de riesgo crediticio** . Permite consultar información sobre el modelo de clasificación que desarrollamos, revisar sus resultados, conocer sus limitaciones y consultar las fuentes utilizadas para responder.
+
+El objetivo es que el analista tenga más información al momento de interpretar un dictamen y pueda identificar cuándo es necesaria una revisión manual. CREDIT no toma decisiones de aprobación o rechazo de créditos.
 
 | | |
 | :-- | :-- |
-| **Demo** | Colab + túnel de Cloudflare: [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) imprime la URL pública y el health check (`<URL>/health`) |
+| **Demo** | Colab + túnel de Cloudfla [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) imprime la URL pública y el health check (`<URL>/health`) |
 | **Observabilidad** | `<URL>/metrics` y pestaña «Observabilidad» de la app; W&B en modo offline (ver la sección 9 del reporte) |
 | **Reporte final** | [`final/reporte.md`](final/reporte.md) |
 | **Diapositivas** | [`final/diapositivas.pdf`](final/diapositivas.pdf) |
@@ -65,7 +65,7 @@ M3, la carpeta `final/` y la app no lo necesitan: trabajan sobre el corpus de do
 
 ## Uso de IA
 
-Usamos Claude durante todo el proyecto. Lo contamos completo porque fue bastante.
+Durante el desarrollo de CREDIT utilizamos Claude como herramienta de apoyo para trabajar sobre los notebooks de clase, resolver errores, revisar implementaciones y organizar parte de la documentación. A continuación explicamos en qué actividades lo utilizamos:
 
 **Código.** Partimos de los notebooks de clase (S05, S06, S07 y S10) como base. Claude nos ayudó a
 adaptarlos a nuestro dominio y a extenderlos: el criterio de dominio del harness, los experimentos

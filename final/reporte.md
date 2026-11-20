@@ -66,6 +66,18 @@ flowchart LR
     HC[/health/] -.-> IDX
     HC -.-> G
   end
+  subgraph VIS["Componente visual"]
+    IMG[Imagen de la ficha · escaneo o foto] --> OCR[OCR Tesseract en español + normalización]
+    OCR --> PUERTA{¿Tiene forma de ficha? ¿Pocos campos vacíos?}
+    PUERTA -->|no| ABS[Se abstiene: fuera de alcance o evidencia insuficiente]
+    PUERTA -->|sí| CLF[Clasificador de M1 · BETO + LoRA · umbral 0,54 de M2]
+    CLF --> DIC[Dictamen sugerido con señales de la ficha]
+  end
+  D1 -.-> CLF
+  H -.-> PUERTA
+  DIC --> LOG
+  HC -.-> OCR
+  HC -.-> CLF
 ```
 
 La pregunta entra por dos caminos de búsqueda: uno por significado (embeddings) y otro por palabras exactas (BM25). Los
@@ -74,10 +86,11 @@ mejores. Si la pregunta pide una cuenta, una regla lo detecta y una calculadora 
 lenguaje. El generador redacta la respuesta solo con ese contexto. Si la respuesta no está ahí, usa la frase de la
 válvula. Cada petición deja un registro y el sistema expone una ruta para saber si está vivo.
 
-**Lo que no está en el diagrama.** El clasificador de M1 no se ejecuta dentro del sistema desplegado. Entra como
-conocimiento, porque sus decisiones y resultados son el contenido del corpus, pero el analista no puede pasarle una ficha
-desde la app. Lo declaramos como limitación de integración en la sección 9. Tampoco hay componente visual: M4 no se
-entregó, y la sección 3.3 explica qué quedó afuera.
+**La segunda entrada: la ficha como imagen.** Si al analista le llega la solicitud escaneada o fotografiada, la sube en la
+pestaña «Dictamen desde imagen de ficha». El OCR la convierte en texto y se lo muestra al analista para que lo revise.
+Una puerta, la misma de M2, revisa que el texto tenga la forma de una ficha y que no le falten demasiados datos. Si pasa,
+el clasificador de M1, con el pooler y el umbral fijados en M2, sugiere un dictamen con las señales de riesgo que
+encontró en la ficha. Así M1 deja de ser solo documentación y se ejecuta dentro del sistema desplegado.
 
 ## 3. Decisiones técnicas
 
@@ -108,11 +121,20 @@ equivalencia: el top-10 es idéntico en las 15 consultas del eval set.
 
 ### 3.3 Patrón visual
 
-⟨PENDIENTE — completar según lo que alcancemos. Si no se implementa: "El sistema final no tiene componente visual. La
-entrega de M4 no se hizo y priorizamos que el sistema de texto quedara medido, cuantizado y desplegado. El patrón que
-teníamos pensado es leer la ficha del solicitante desde una imagen escaneada con OCR y pasarla al clasificador de M1, con
-una prueba de invarianza entre la ficha como texto y como imagen. Quedó como trabajo futuro y lo reflejamos en la
-evaluación." Si se implementa: describir el OCR, los casos con imagen y la invarianza.⟩
+La entrega de M4 no la hicimos (era opcional este semestre), así que el componente visual se construyó para esta
+entrega. El patrón es **OCR más el clasificador de texto que ya teníamos**: la ficha llega como imagen, Tesseract la
+lee en español, una normalización corrige lo típico del OCR (el cero leído como la letra O, las líneas partidas) y el
+texto entra al mismo `sistema_m1` de M2. El código está en `final/space/vision.py` y `final/space/m1_dictamen.py`.
+
+Lo elegimos porque responde a cómo llega de verdad una solicitud. Además reutiliza el modelo de M1, que es el que el
+usuario necesita entender, en lugar de agregar un modelo nuevo. Descartamos **un modelo de visión y lenguaje** (por
+ejemplo Qwen2-VL-2B) que leyera la imagen y dictaminara directamente. En CPU tardaría minutos por imagen y nos daría un
+dictamen que no podríamos comparar con el de M1. Con OCR, la comparación es directa: la misma ficha como texto y como
+imagen debe dar el mismo veredicto, y si no lo da, el error es del OCR.
+
+Los casos con imagen son las 13 fichas del eval set de M2, dibujadas como un documento escaneado. Son imágenes
+sintéticas y llevan una marca visible que lo dice. Se suman tres pruebas adversariales: un escaneo torcido y de baja
+calidad, una foto borrosa ilegible y la imagen de un texto que no es una ficha. Resultados en la sección 5.
 
 ### 3.4 Técnica de eficiencia
 
@@ -205,7 +227,7 @@ El mismo eval set (15 casos: 10 gold, 3 de cálculo y 2 fuera del corpus) y el m
 | Sistema de M3 · RAG avanzado | 0,645 | 4,2 | 12/15 | 9/10 | 2/2 | — | 1,36 s (GPU) |
 | Sistema de M3 · final con router | 0,651 | 4,2 | 12/15 | 9/10 | 2/2 | — | 1,77 s (GPU) |
 | Sistema de M4 | no se entregó | | | | | | |
-| **Sistema final (int4 Q4_K_M, desplegado)** | 0,702 | 4,4 | 14/15 | 10/10 | 2/2 | — | 43,1 s (CPU) |
+| **Sistema final (int4 Q4_K_M, desplegado)** | 0,702 | 4,4 | 14/15 | 10/10 | 2/2 | 6/12 | 43,1 s (CPU) |
 
 Fuentes: `M3/m3_salida/scorecard_m3.csv` y `final/salida/tabla_evolutiva_final.csv`.
 
@@ -215,8 +237,31 @@ mismo que evaluamos.
 
 Las columnas de calidad son comparables entre filas. La latencia no del todo: las filas de M2 y M3 se midieron en GPU T4
 y la final en CPU, que es donde va a correr. La comparación justa de latencia es la de la tabla de la sección 4, donde
-las tres versiones corren en la misma máquina. La columna de imagen queda vacía porque el sistema no tiene componente
-visual (sección 3.3).
+las tres versiones corren en la misma máquina. Las filas anteriores no tienen casos con imagen porque el componente
+visual se agregó en esta entrega (sección 3.3).
+
+**Casos con imagen: la misma ficha como texto y como imagen.** El eval set con imagen son las fichas del eval set de M2
+(sección 3.3). El criterio de acierto es el de M2: que el veredicto coincida con el esperado (12 fichas con veredicto
+esperado; A04 es una prueba de invarianza sin veredicto propio). El clasificador, el umbral y la máquina son los mismos
+en las dos filas. Lo único que cambia es si la ficha entra como texto o como imagen leída por OCR.
+
+| Entrada | Aciertos (M2) | Mismo veredicto que con texto | Similitud del texto leído | Latencia mediana |
+| :-- | --: | --: | --: | --: |
+| Ficha como texto (sistema de M2) | 6/12 | — | — | — |
+| Ficha como imagen (OCR + M1) | 6/12 | 13/13 | ≥ 0,998 | 4,3 s |
+
+Diferencia máxima en la probabilidad de incumplimiento entre texto e imagen: 0,007. Pruebas adversariales con
+imagen: 3 de 3. Fuentes: `final/salida/visual_delta.csv`, `visual_casos.csv` y `visual_adversariales.csv`, que
+produce `final/STAI_final_visual.ipynb`.
+
+**Lectura.** Leer la ficha desde la imagen no cambió ningún veredicto: el OCR leyó 11 de las 13 fichas sin una sola
+diferencia, y en las otras dos (G09 y G10) la probabilidad se movió menos de 0,01. Los 6 aciertos sobre 12 son los
+del clasificador de M1, con o sin imagen, y coinciden con M2. G01, por ejemplo, da 0,510 contra el umbral de 0,54
+igual que en la auditoría de M2. Es decir, el componente visual hereda la exactitud de M1 y no le agrega errores, al
+menos con imágenes limpias. Las tres pruebas adversariales pasaron. El escaneo torcido y borroso dio el mismo
+veredicto, y la foto ilegible y la imagen de un texto que no es una ficha se abstuvieron («fuera de alcance»), porque
+la puerta de M2 no encontró los bloques de una ficha. Leer la imagen y dictaminar toma 4,3 s de mediana en CPU, casi
+todo OCR, frente a unos 45 s de una consulta a la documentación.
 
 Lo que más movió el resultado fue tener recuperación: los aciertos gold pasan de 2/10 a 8/10 solo con el RAG ingenuo. Sin
 recuperación, el generador respondió que el horizonte de la etiqueta "se refiere a su durabilidad o vida útil", es decir,
@@ -239,6 +284,11 @@ BM25 aporta qué fragmento llega (el que trae la explicación completa del incid
 **Quitar la herramienta (M3).** Sin el router, el RAG avanzado no usa la calculadora en ninguno de los tres casos de
 cálculo. Con el router la usa en 1 de 3, y la mediana de latencia sube de 1,36 a 1,77 s. Hoy ese costo no compra
 aciertos: D3 queda en 12/15 en los dos casos, porque el modelo propone mal la expresión (sección 7).
+
+**Quitar el componente visual (final).** La tabla de casos con imagen de la sección 5 es también la ablación del
+componente visual: el mismo clasificador recibe la ficha escrita o la ficha leída desde la imagen. Quitarlo no cambia los aciertos (6/12 en las dos entradas). Lo que cambia es que, sin él, una solicitud que llega
+escaneada tendría que transcribirse a mano para que M1 la lea, con los mismos riesgos de error que el OCR pero sin la
+prueba de invarianza que lo mide. El costo es de 4,3 s por imagen.
 
 **Quitar la precisión completa (final).** La tabla de la sección 4 es en sí misma una ablación sobre el generador: misma
 recuperación, misma herramienta y mismo prompt, con pesos de 32, 8 y 4 bits. Quitar precisión no movió la recuperación (13/13 en las tres) y movió la generación en ambas direcciones: int4 recuperó Q02 y T02, e int8 perdió Q07 por una abstención de más. Con 15 casos no hay un patrón que podamos atribuirle a la cuantización.
@@ -288,6 +338,15 @@ cuenta como un par inestable. En fp32, en cambio, la misma paráfrasis sí produ
 «representa el máximo permitido», un dato inventado. *Para arreglarlo*, calificaríamos la invarianza con el juez o con
 similitud contra la referencia, como en el eval set, en lugar de palabras clave.
 
+**Tipo 6 · Clasificador de M1: el veredicto se equivoca aunque la lectura sea perfecta.**
+*G01* («riesgo evidente», con 2 moras y una mora máxima de 139 días). Leída desde la imagen sin un solo carácter de
+diferencia, la ficha da una probabilidad de 0,510, por debajo del umbral de 0,54, y el dictamen dice «paga» aunque cita
+las moras como señales. Lo mismo pasa con las otras cinco fallas del componente visual (G04, G05, G08, G09 y G10): son
+las del clasificador de M1, ya documentadas en M2, y se repiten idénticas con texto y con imagen. La pieza que falla es
+el clasificador, no el OCR. *Para arreglarlo*, haría falta recalibrar M1. En el corto plazo, el dictamen ya marca
+«riesgo moderado-bajo» cuando la probabilidad está cerca del umbral y lista las señales de la ficha, para que el
+analista vea la contradicción.
+
 **Otra falla vista en int8.** *Q07* (la consulta coloquial del incidente del *pooler*): con el documento correcto de
 primero, int8 respondió «No tengo esa información en mis fuentes». Es la misma clase de abstención de más que tenía Q02
 en fp32. La válvula protege contra inventar, pero a veces le niega al usuario una respuesta que sí tiene.
@@ -311,8 +370,17 @@ otras preguntas.
 **Puede negarse de más.** La misma válvula que evita inventar cifras le negó al usuario una respuesta que sí estaba en el
 corpus (Q02). Un «no tengo esa información» no garantiza que el dato no exista en la documentación.
 
-**No reemplaza el criterio del analista.** El sistema explica cómo funciona y dónde falla el modelo de M1. No evalúa
-solicitudes, y la app lo dice en su primera línea.
+**El dictamen desde imagen depende de lo que lea el OCR.** Las fichas de prueba son imágenes sintéticas limpias, así que
+la similitud de lectura casi perfecta que medimos es un techo. Una foto real con sombras, papel arrugado o letra a mano
+va a leerse peor, y no la probamos. Por eso la app le muestra al analista el texto leído: si el OCR se equivocó en una
+cifra, el dictamen también. Con una imagen ilegible el sistema se abstiene, y eso sí lo probamos.
+
+**El dictamen hereda los sesgos de M1.** El clasificador que se ejecuta con la imagen es el mismo de la auditoría de M2,
+que marca como riesgoso a un informal que habría pagado casi cinco veces más que a un formal. Leer la ficha desde una
+imagen no corrige eso. Por eso la app dice «dictamen sugerido» y la decisión es de una persona.
+
+**No reemplaza el criterio del analista.** El sistema explica cómo funciona y dónde falla el modelo de M1, y sugiere un
+dictamen. No decide créditos, y la app lo dice en su primera línea.
 
 **Qué hace cuando no sabe.** Responde exactamente «No tengo esa información en mis fuentes», la interfaz lo marca como
 abstención y el registro de la petición guarda `valvula: true`, de modo que la tasa de abstención se puede seguir en
@@ -325,11 +393,12 @@ W&B.
   [`final/STAI_final_despliegue.ipynb`](STAI_final_despliegue.ipynb) (*Ejecutar todo*). La URL pública
   (`https://….trycloudflare.com`) cambia en cada ejecución, así que la compartimos el día de la sustentación. Despliega
   la versión int4 (Q4_K_M) del generador, la misma que medimos, sobre el mismo tipo de máquina (2 vCPU). No quedó afuera
-  nada del sistema de texto. Quedan afuera el componente visual y el clasificador de M1, que no se ejecuta en la app
-  (sección 2). La carpeta `final/space/` conserva la configuración para Spaces (`README.md`, `requirements.txt`) por si
+  nada del sistema: la app tiene dos pestañas de trabajo, la consulta de la documentación (RAG) y el dictamen desde la
+  imagen de una ficha (OCR + clasificador de M1), además de las pestañas de observabilidad y estado. La carpeta `final/space/` conserva la configuración para Spaces (`README.md`, `requirements.txt`) por si
   se usa una cuenta con acceso.
 - **Health check:** `GET /health` (por ejemplo, `curl https://….trycloudflare.com/health`). Comprueba, sin hacer una pregunta real, que el
-  índice devuelve cuatro pasajes para una búsqueda fija, que el generador está cargado y que la calculadora responde.
+  índice devuelve cuatro pasajes para una búsqueda fija, que el generador está cargado, que la calculadora responde,
+  que Tesseract tiene el idioma español y que el clasificador de M1 cargó.
   Devuelve `200 {"status": "ok", ...}` o `503` mientras el modelo carga o si algo falla. La pestaña «Estado» de la app
   muestra lo mismo.
 - **Logging estructurado:** cada petición escribe una línea JSON en la salida de la app y en `final/space/logs/peticiones.jsonl`.
@@ -340,7 +409,8 @@ W&B.
    "valvula": false, "docs_recuperados": ["doc2", "doc6"], "largo_pregunta": 57, "error": null}
   ```
 
-  No se guarda el texto de la pregunta ni el de la respuesta, solo su longitud, porque un analista podría escribir el
+  Las peticiones con imagen registran además `vision: true`, el veredicto, la latencia del OCR y el largo del texto
+  leído. No se guarda el texto de la pregunta, el de la ficha ni la imagen, solo su longitud, porque un analista podría escribir el
   nombre o la cédula de un solicitante.
 - **Observabilidad:** cada petición se registra en W&B con la latencia total, la de recuperación, si se activó la
   válvula y si se usó la calculadora, más las tasas acumuladas de abstención y de uso de la calculadora. No pudimos crear
@@ -371,11 +441,14 @@ W&B.
 de 6,0 % entre formales, y de 22,1 % en estrato 1 frente a 7,4 % en estrato 4. En el asistente lo sospechamos pero no lo
 medimos. Un analista que pregunte en lenguaje coloquial o con términos distintos a los del corpus, como «el puntaje de
 Datacrédito» en lugar de «score de buró externo», tiene más probabilidad de recibir una abstención. Eso es justo lo que
-le pasaba a Q07 antes del reranker.
+le pasaba a Q07 antes del reranker. En el componente visual, el riesgo está en el tipo de imagen: quien llega con un
+documento fotografiado con un celular de gama baja o diligenciado a mano va a tener peor lectura que quien llega con un
+PDF limpio. Esa diferencia probablemente se cruza con el estrato y la informalidad, que es justo donde M1 ya falla más.
 
-**¿Qué pasa con los datos?** El asistente no recibe fichas ni datos de solicitantes. Su corpus es documentación del
-equipo. El riesgo está en lo que el analista escriba en la pregunta, y por eso los registros y W&B guardan solo la
-longitud del texto. Los datos de M1 (`perfiles.csv`) no están en el repositorio. La app se lo dice al usuario en el aviso
+**¿Qué pasa con los datos?** La consulta de documentación no recibe datos de solicitantes, pero el componente visual sí:
+una ficha tiene ingresos, deudas, moras y ciudad. La imagen y el texto leído se procesan en memoria y no se guardan; los
+registros y W&B solo guardan el veredicto, las latencias y la longitud del texto. Las imágenes de prueba del repositorio
+son sintéticas, generadas del eval set de M2, y lo dicen en la propia imagen. Los datos de M1 (`perfiles.csv`) no están en el repositorio. La app se lo dice al usuario en el aviso
 de la primera línea: las peticiones se registran sin el texto de la pregunta.
 
 **¿Qué daño haría un error?** El peor error es una cifra inventada sobre los límites del modelo. Por ejemplo, que el
@@ -383,6 +456,10 @@ asistente diga que el modelo trata igual a formales e informales: un analista qu
 manuales, y lo sufriría el solicitante informal que habría pagado y queda rechazado. Contra eso pusimos la válvula, la
 condición de no perder ninguna prueba adversarial al cuantizar y la regla de que el sistema no decide créditos. La app
 lo dice desde la primera línea y se abstiene si se le pide decidir sobre una persona (prueba ADV4).
+
+En el componente visual, el error más dañino es una cifra mal leída que cambie el veredicto, por ejemplo una mora de 0
+días leída como 60. El dictamen saldría con una señal de riesgo que no existe. Por eso la normalización corrige el cero
+leído como O, la app muestra el texto leído junto al dictamen y la decisión queda en manos del analista.
 
 ## 11. Quién hizo qué
 
@@ -393,6 +470,10 @@ lo dice desde la primera línea y se abstiene si se le pide decidir sobre una pe
 
 Usamos Claude durante todo el proyecto. Lo que corresponde a M1, M2 y M3 está en el README de la raíz y en el de cada
 módulo. En esta entrega final:
+
+**Componente visual.** Claude escribió el módulo de OCR (`vision.py`), empaquetó el `sistema_m1` de M2 en
+`m1_dictamen.py`, agregó la pestaña a la app y escribió `STAI_final_visual.ipynb`. La lectura OCR la verificó contra las
+fichas reales del eval set antes de que corriéramos el clasificador.
 
 **Código.** Claude extrajo el pipeline del notebook de M3 a un módulo (`final/space/credit_rag.py`) para que el notebook
 de eficiencia y la app usaran exactamente el mismo sistema. También escribió el notebook de eficiencia, el de despliegue, la prueba de humo de GitHub Actions, la app de

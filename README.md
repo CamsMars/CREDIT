@@ -45,8 +45,8 @@ sistema y verifica el health check y 4 casos del eval set (ver la pestaña *Acti
 | [`M1/`](M1/) | Fine-tuning de BETO con LoRA sobre 205k perfiles, y el adaptador resultante |
 | [`M2/`](M2/) | Harness de evaluación de tres dimensiones y scorecard del baseline |
 | [`M3/`](M3/) | RAG agéntico sobre la documentación del proyecto, medido con el harness de M2 y RAGAS |
-| M4 | No se entregó (era opcional este semestre); ver la sección 3.3 del reporte final |
-| [`final/`](final/) | Técnica de eficiencia (cuantización GGUF del generador), despliegue y [reporte final](final/reporte.md) |
+| M4 | No se entregó (era opcional este semestre). El componente visual se construyó en `final/`: la ficha en imagen se lee con OCR y pasa al clasificador de M1 (sección 3.3 del reporte) |
+| [`final/`](final/) | Técnica de eficiencia (cuantización GGUF del generador), componente visual, despliegue y [reporte final](final/reporte.md) |
 
 Cada carpeta de módulo tiene su propio README con los resultados de esa entrega.
 

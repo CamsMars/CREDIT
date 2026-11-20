@@ -1,0 +1,11 @@
+{
+ "aciertos_texto": "6/12",
+ "aciertos_imagen": "6/12",
+ "invarianza": "13/13",
+ "delta_p_max": 0.0068,
+ "similitud_ocr_min": 0.9979,
+ "latencia_mediana_imagen_s": 4.3,
+ "adversariales": "3/3",
+ "umbral": 0.54,
+ "tesseract": "tesseract 5.3.4"
+}

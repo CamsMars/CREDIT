@@ -1,0 +1,4 @@
+id,prueba,espera,obtiene,ok
+VIS1,escaneo torcido y de baja calidad,mismo veredicto (paga),paga,True
+VIS2,foto borrosa ilegible,abstenerse (fuera_de_alcance),fuera_de_alcance,True
+VIS3,imagen que no es una ficha (A02),fuera_de_alcance,fuera_de_alcance,True

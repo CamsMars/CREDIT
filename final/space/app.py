@@ -115,7 +115,7 @@ def a_wandb(evento: dict):
 # --------------------------------------------------------------------------------------------
 # Carga del sistema en segundo plano (el health check responde 503 mientras tanto)
 # --------------------------------------------------------------------------------------------
-ESTADO = {'sistema': None, 'error': None, 'cargando': True}
+ESTADO = {'sistema': None, 'error': None, 'cargando': True, 'm1': None, 'error_m1': None}
 
 
 def cargar():
@@ -129,8 +129,15 @@ def cargar():
     except Exception as e:
         ESTADO['error'] = f'{type(e).__name__}: {e}'
         print('Error cargando el sistema:', ESTADO['error'])
-    finally:
-        ESTADO['cargando'] = False
+    # Componente visual: clasificador de M1 + OCR. Si falla, la consulta de documentación sigue.
+    try:
+        import m1_dictamen
+        ESTADO['m1'] = m1_dictamen.ClasificadorM1(device='cpu')
+        print(f"Clasificador de M1 listo en {ESTADO['m1'].segundos_carga:.0f} s")
+    except Exception as e:
+        ESTADO['error_m1'] = f'{type(e).__name__}: {e}'
+        print('Error cargando el clasificador de M1:', ESTADO['error_m1'])
+    ESTADO['cargando'] = False
 
 
 def health_payload():
@@ -141,6 +148,15 @@ def health_payload():
     if ESTADO['sistema'] is None:
         return 503, {'status': 'error', 'detalle': ESTADO['error'], **base}
     h = ESTADO['sistema'].health()
+    try:
+        import vision
+        h['checks']['ocr'] = vision.tesseract_disponible()
+    except Exception:
+        h['checks']['ocr'] = False
+    h['checks']['clasificador_m1'] = ESTADO['m1'] is not None and ESTADO['m1'].vivo()
+    if ESTADO['error_m1']:
+        h['detalle_m1'] = ESTADO['error_m1']
+    h['ok'] = all(v is True for v in h['checks'].values())
     return (200 if h['ok'] else 503), {'status': 'ok' if h['ok'] else 'degradado', **h, **base}
 
 
@@ -169,6 +185,7 @@ def metricas():
         'tasa_valvula': round(sum(e['valvula'] for e in ev) / n, 3),
         'tasa_calculadora': round(sum(e['componentes']['herramienta'] for e in ev) / n, 3),
         'tasa_rag': round(sum(e['componentes']['rag'] for e in ev) / n, 3),
+        'tasa_vision': round(sum(e['componentes'].get('vision', False) for e in ev) / n, 3),
         'errores': sum(e['error'] is not None for e in ev),
         'version_generador': VERSION,
     }
@@ -178,7 +195,8 @@ def tabla_latencias():
     import pandas as pd
     ev = leer_log()
     return pd.DataFrame([{'petición': f'#{i + 1}', 'latencia (s)': e['latencia_s'],
-                          'tipo': ('válvula' if e['valvula'] else
+                          'tipo': ('imagen' if e['componentes'].get('vision') else
+                                   'válvula' if e['valvula'] else
                                    'calculadora' if e['componentes']['herramienta'] else 'respuesta')}
                          for i, e in enumerate(ev)]) if ev else pd.DataFrame(
         {'petición': [], 'latencia (s)': [], 'tipo': []})
@@ -187,8 +205,8 @@ def tabla_latencias():
 # --------------------------------------------------------------------------------------------
 # Lógica de una petición
 # --------------------------------------------------------------------------------------------
-AVISO = ('Este asistente consulta la documentación del proyecto de riesgo crediticio. No evalúa '
-         'solicitudes reales ni toma decisiones de crédito: esas las toma una persona. Cada consulta se '
+AVISO = ('Este asistente consulta la documentación del proyecto de riesgo crediticio y sugiere un dictamen '
+         'a partir de la imagen de una ficha. No toma decisiones de crédito: esas las toma una persona. Cada consulta se '
          'registra (hora, latencia, componentes usados) sin guardar el texto de la pregunta.')
 
 
@@ -247,6 +265,48 @@ def responder(pregunta: str):
     return _formato(out)
 
 
+def dictaminar_imagen(imagen):
+    """Componente visual: imagen de una ficha -> OCR -> clasificador de M1 -> dictamen."""
+    if imagen is None:
+        return '', 'Sube la imagen de una ficha.'
+    if ESTADO['m1'] is None:
+        return '', ('El clasificador todavía está cargando, intenta en un minuto.' if ESTADO['cargando']
+                    else f"El clasificador de M1 no cargó: {ESTADO['error_m1']}")
+    import vision
+    rid, t0, error, d, texto = uuid.uuid4().hex[:12], time.perf_counter(), None, None, ''
+    try:
+        texto = vision.leer_imagen(imagen)
+        t_ocr = time.perf_counter() - t0
+        d = ESTADO['m1'].dictamen(texto)
+    except Exception as e:
+        error, t_ocr = type(e).__name__, None
+    lat = time.perf_counter() - t0
+    CONTADORES['peticiones'] += 1
+    abstiene = bool(d and d['veredicto'] in ('fuera_de_alcance', 'evidencia_insuficiente'))
+    evento = {
+        'ts': datetime.now(timezone.utc).isoformat(timespec='milliseconds'), 'request_id': rid,
+        'version': VERSION, 'latencia_s': round(lat, 3),
+        'latencia_ocr_s': round(t_ocr, 3) if t_ocr is not None else None,
+        'componentes': {'rag': False, 'herramienta': False, 'vision': True, 'clasificador_m1': True},
+        'valvula': abstiene, 'veredicto': d['veredicto'] if d else None,
+        'largo_texto_ocr': len(texto),   # el texto de la ficha no se guarda
+        'error': error,
+    }
+    CONTADORES['valvula'] += int(abstiene)
+    CONTADORES['errores'] += int(error is not None)
+    registrar(evento)
+    a_wandb({**evento, 'latencia_recuperacion_ms': None})
+    if error:
+        return texto, f'Ocurrió un error ({error}). Quedó registrado con el id `{rid}`.'
+    import m1_dictamen
+    if d['p'] is not None:
+        extra = (f"\n\n*Probabilidad de incumplimiento {d['p']:.2f} · umbral {m1_dictamen.UMBRAL:.2f} · "
+                 f"{lat:.1f} s (OCR {t_ocr:.1f} s)*")
+    else:
+        extra = f'\n\n*{lat:.1f} s*'
+    return texto, '**Dictamen sugerido (lo decide una persona):** ' + d['dictamen'] + extra
+
+
 # --------------------------------------------------------------------------------------------
 # Interfaz
 # --------------------------------------------------------------------------------------------
@@ -267,6 +327,21 @@ with gr.Blocks(title='CREDIT · SI4006') as demo:
         gr.Examples(EJEMPLOS, inputs=pregunta, label='Ejemplos: fácil · con cálculo · fuera de las fuentes')
         boton.click(responder, pregunta, [respuesta, detalle], api_name='responder')
         pregunta.submit(responder, pregunta, [respuesta, detalle])
+    with gr.Tab('Dictamen desde imagen de ficha'):
+        gr.Markdown('Sube la foto o el escaneo de una ficha de solicitud. El sistema la lee con OCR y el '
+                    'clasificador de M1 sugiere un dictamen. **Revisa el texto leído**: si el OCR se equivocó, '
+                    'el dictamen también. Si la imagen no es legible o no es una ficha, el sistema se abstiene.')
+        with gr.Row():
+            imagen = gr.Image(type='pil', label='Imagen de la ficha', sources=['upload', 'clipboard', 'webcam'])
+            with gr.Column():
+                texto_ocr = gr.Textbox(label='Texto leído por OCR', lines=10)
+                dictamen = gr.Markdown()
+        boton_img = gr.Button('Leer y dictaminar', variant='primary')
+        boton_img.click(dictaminar_imagen, imagen, [texto_ocr, dictamen], api_name='dictamen_imagen')
+        ejemplos_img = sorted(str(p) for p in Path(__file__).with_name('ejemplos').glob('*.png'))
+        if ejemplos_img:
+            gr.Examples([[p] for p in ejemplos_img], inputs=imagen,
+                        label='Ejemplos (imágenes sintéticas): ficha legible · escaneo torcido · foto borrosa')
     with gr.Tab('Observabilidad'):
         gr.Markdown('Métricas calculadas del log JSON de cada petición (lo mismo expone la ruta `/metrics`). '
                     'El log no guarda el texto de las preguntas.')

@@ -9,7 +9,7 @@ respuesta no está en la documentación, el asistente lo dice en lugar de invent
 | **Demo** | Colab + túnel de Cloudflare: [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) imprime la URL pública y el health check (`<URL>/health`) |
 | **Observabilidad** | `<URL>/metrics` y pestaña «Observabilidad» de la app; W&B en modo offline (ver la sección 9 del reporte) |
 | **Reporte final** | [`final/reporte.md`](final/reporte.md) |
-| **Diapositivas** | ⟨PENDIENTE⟩ |
+| **Diapositivas** | [`final/diapositivas.pdf`](final/diapositivas.pdf) |
 
 Equipo: Jaider España, Camila Martínez
 
@@ -34,6 +34,9 @@ versiones de modelos y librerías fijadas en `final/salida/versiones_final.json`
 **Desplegar con enlace público:** abrir [`final/STAI_final_despliegue.ipynb`](final/STAI_final_despliegue.ipynb) en Colab (CPU) y
 ejecutar todo. Levanta la app y un túnel de Cloudflare, y muestra la URL. Hugging Face ya no ofrece Spaces de Gradio
 en CPU a cuentas gratuitas; `final/desplegar_space.py` queda para una cuenta con acceso.
+
+**Prueba de humo automática:** cada push que toca `final/` corre `.github/workflows/prueba-humo.yml`, que carga el
+sistema y verifica el health check y 4 casos del eval set (ver la pestaña *Actions* del repositorio).
 
 ## Índice
 

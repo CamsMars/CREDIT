@@ -1,0 +1,47 @@
+# Prueba de humo del sistema final: en cada push carga el sistema desplegado (int4, CPU) y responde
+# 4 casos del eval set con comprobaciones deterministas. Ver final/ci_smoke.py.
+name: Prueba de humo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'final/**'
+      - 'M3/m3_salida/eval_set_m3_v2.json'
+      - '.github/workflows/prueba-humo.yml'
+  workflow_dispatch:
+
+jobs:
+  humo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TOKENIZERS_PARALLELISM: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: final/space/requirements.txt
+
+      - name: Caché de modelos (embeddings, reranker, tokenizer y GGUF int4)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-modelos-v1
+
+      - name: Instalar dependencias
+        run: pip install -r final/space/requirements.txt
+
+      - name: Correr la prueba de humo
+        run: python final/ci_smoke.py
+
+      - name: Guardar resultado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-smoke
+          path: final/salida/ci_smoke.json
+          if-no-files-found: ignore

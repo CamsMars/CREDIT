@@ -3,7 +3,7 @@
 Equipo: Jaider España, Camila Martínez · Entrega: 19 de noviembre de 2026
 
 Demo: Colab + túnel de Cloudflare, con URL generada en cada ejecución (sección 9) · Observabilidad: ruta `/metrics` y pestaña «Observabilidad» de la app (sección 9) ·
-Diapositivas: ⟨PENDIENTE: enlace⟩
+Diapositivas: [`final/diapositivas.pdf`](diapositivas.pdf)
 
 > **Cómo leer este reporte.** Las tablas salen de archivos versionados en el repositorio y cada una indica de dónde
 > viene. Los números de M2 y M3 están en `M2/m2_salida/` y `M3/m3_salida/`. Los de la técnica de eficiencia y el sistema
@@ -356,6 +356,12 @@ W&B.
     válvula 0,33, tasa de calculadora 0,33 y 0 errores:
 
     ![Pestaña de observabilidad](capturas/observabilidad.png)
+- **Integración continua (opcional):** la GitHub Action `.github/workflows/prueba-humo.yml` corre en cada push que
+  toca `final/`. Carga el sistema desplegado (int4 en la CPU del runner), revisa el health check y responde cuatro casos
+  del eval set con comprobaciones deterministas: Q03 debe mencionar que la variable es protegida, Q06 debe dar el PR-AUC
+  0,1723, T02 debe usar la calculadora y dar 45, y A01 debe abstenerse. El job falla si el health check no da ok, si A01
+  no se abstiene o si acierta menos de 3 de 4. El resultado queda en el resumen del job y como artefacto
+  (`ci_smoke.json`). No usa el juez de 7B, que no cabe en un runner gratuito. El código está en `final/ci_smoke.py`.
 - **Claves:** ninguna de pago. El token de Hugging Face (para desplegar) y el de W&B son gratuitos y viven como secretos,
   nunca en el repositorio.
 
@@ -389,7 +395,7 @@ Usamos Claude durante todo el proyecto. Lo que corresponde a M1, M2 y M3 está e
 módulo. En esta entrega final:
 
 **Código.** Claude extrajo el pipeline del notebook de M3 a un módulo (`final/space/credit_rag.py`) para que el notebook
-de eficiencia y la app usaran exactamente el mismo sistema. También escribió el notebook de eficiencia, el de despliegue, la app de
+de eficiencia y la app usaran exactamente el mismo sistema. También escribió el notebook de eficiencia, el de despliegue, la prueba de humo de GitHub Actions, la app de
 Gradio con el health check, el logging y W&B, y el script de despliegue. Antes de que corriéramos nada, verificó la
 lógica con modelos falsos.
 
